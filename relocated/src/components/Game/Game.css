@@ -419,16 +419,31 @@ aside ul {list-style-type: none; margin-left: 0; padding-left: 0; margin-bottom:
 	background: grey;
 
 }
-#bet, #results {
+#bet {
 	background-color: #ffefb4;
 	padding: 1vw;
 	width: 20vw;
 	border: 2px solid #555;
-	border-radius: 20px;
+	border-radius: 5px;
 	margin-top: 5vh;
 	margin-left: 2vw;
 	overflow: auto;
 	float: left;
+}
+
+#results {
+	position: absolute;
+	background-color: #ffefb4;
+	padding: 1vw;
+	width: 130px;
+	border: 2px solid #555;
+	border-radius: 5px;
+	margin-top: 5vh;
+	margin-left: 2vw;
+	overflow: auto;
+	float: left;
+	margin-top: 8vh; 
+	margin-left: 48vw;
 }
 
 #funds {font-weight: bold;}
@@ -437,7 +452,7 @@ aside ul {list-style-type: none; margin-left: 0; padding-left: 0; margin-bottom:
 label, input, select {float:  left; display: block; width: 8vw; margin-bottom: 0.5vh;}
 label {clear: left;}
 
-#results {width: auto; position: absolute; margin-top: 8vh; margin-left: 48vw;}
+/* #results {width: auto; position: absolute; margin-top: 8vh; margin-left: 48vw;} */
 #results td {height: 30px; width: 30px; background-repeat: no-repeat; background-position: 0px -64px;}
 #results .horse1 { background-image: url(../../images/head0.png);}
 #results .horse2 {  background-image: url(../../images/head4.png);}
