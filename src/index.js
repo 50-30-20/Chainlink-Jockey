@@ -2,6 +2,10 @@ import "./game.css"
 
 var web3 = new Web3(window.ethereum);
 import RaceContract from './abis/Race.json'
+import NFTTrophy from './abis/NFTTrophy.json'
+import RaceBetToken from './abis/RaceBetToken.json'
+
+var num_lap = 1, results = [], funds = 0, bethorse, amount, raceContract, nftContract, betToken;
 
 function loadBlockchain() {
     if (window.ethereum) {
@@ -16,35 +20,123 @@ function loadBlockchain() {
     }
 }
 
-function setInitialSpeed() {
-    let num = 1
-    const len = Math.ceil(Math.log10(num + 1));
-    const rounded = num % len //Math.ceil(Math.round(num / len))
-    let stripped = rounded % Math.random() * 10 + 10
-    let speed = parseInt(stripped)
-    console.log(len, rounded, speed);
+function loadRaceContract() {
+    const web3 = window.web3
+    const networkId = web3.eth.net.getId()
+    const networkData = RaceContract.networks[4]
 
+    if (networkData) {
+        const abi = []
+        const address = networkData.address
+        raceContract = new web3.eth.Contract(RaceContract.abi, address)
+
+    } else {
+        window.alert('Smart contract not deployed to the detected network')
+    }
+}
+
+function loadNFTContract() {
+    const web3 = window.web3
+    const networkId = web3.eth.net.getId()
+    const networkData = NFTTrophy.networks[4]
+
+    if (networkData) {
+        const abi = []
+        const address = networkData.address
+        nftContract = new web3.eth.Contract(NFTTrophy.abi, address)
+
+    } else {
+        window.alert('Smart contract not deployed to the detected network')
+    }
+}
+
+function loadRaceBetTokenContract() {
+    const web3 = window.web3
+    const networkId = web3.eth.net.getId()
+    const networkData = RaceBetToken.networks[4]
+
+    if (networkData) {
+        const abi = []
+        const address = networkData.address
+        betToken = new web3.eth.Contract(RaceBetToken.abi, address)
+
+    } else {
+        window.alert('Smart contract not deployed to the detected network')
+    }
+}
+
+function getRandomSpeed() {
+    loadRaceContract()
+
+    const web3 = window.web3
+    const accounts = web3.eth.getAccounts()
+    accounts.then(data => {
+        raceContract.methods.setHorseSpeed().send({ from: data[0] })
+    })
+}
+
+async function setInitialSpeed() {
+    loadRaceContract()
+
+    const web3 = window.web3
+    let speed
+    const accounts = web3.eth.getAccounts()
+    
+    speed = await raceContract.methods.randomResult().call()
     return speed
 }
 
-function speed() {
-    // let num = 1
-    // const len = Math.ceil(Math.log10(num + 1));
-    // const rounded = num % len //Math.ceil(Math.round(num / len))
-    // let stripped = rounded % Math.random() * 10 + 10
-    // let speed = parseInt(stripped)
-    // console.log(len, rounded, speed);
+async function usersBalance() {
+    loadRaceBetTokenContract()
 
-    let horseSpeed = Math.random() * 10 + 10;
-    console.log(horseSpeed);
-    return horseSpeed
+    const web3 = window.web3
+    let balance
+    const accounts = await web3.eth.getAccounts()
+    balance = await betToken.methods.balanceOf(accounts[0]).call()
 
-    //return speed
+    return balance
 }
 
-function Horse(id, x, y) {
-    let speedfunc = setInitialSpeed()
-    console.log('speed', speedfunc);
+async function rewardNFT() {
+    loadNFTContract()
+    loadRaceBetTokenContract()
+
+    const web3 = window.web3
+    const accounts = await web3.eth.getAccounts()
+
+    const nftMint = ["https://ipfs.io/ipfs/QmPbBTESpMSsGjKisM73deE3PLqA76s2zh1nHhvAkAfYf4?filename=btc.png", "https://ipfs.io/ipfs/Qmb3jBv3xdDettAQokTxQc5T4G1buxY9oxRiSA9YepeRrP?filename=crystal.png", "https://ipfs.io/ipfs/QmZg13ohhyY9xBYnhF1XbAm8qjW43SjxDXsXTyTGFkezWX?filename=chest.png", "https://ipfs.io/ipfs/QmNyZd4czMAY8rxYjGK6b8SR69m2W9FHbkVsnCJstewkXY?filename=god.png", "https://ipfs.io/ipfs/QmXHYB8eEpEQjZq6Hc9vCHdPGwpHPjZfoRYQNwqNZVsKQ8?filename=diamond.png"]
+    const random = Math.floor(Math.random() * nftMint.length);
+    await nftContract.methods.requestNewRandomTrophy(
+        1,
+        'Horse Jockey',
+        1,
+        accounts[0],
+        nftMint[random]
+    ).send({ from: accounts[0] })
+
+    await betToken.methods.mintToUser().send({ from: accounts[0] })
+}
+
+async function placeBet(num) {
+    console.log('here');
+    loadRaceBetTokenContract()
+    const web3 = window.web3
+    const accounts = await web3.eth.getAccounts()
+
+    const networkData = RaceBetToken.networks[4]
+    const address = networkData.address
+
+    await betToken.methods.approve(address, num).send({ from: accounts[0] })
+    //await betToken.methods.transferFrom(accounts[0], address, num).send({ from: accounts[0] })
+}
+
+function Horse(id, x, y, num) {
+    
+    const len = Math.ceil(Math.log10(num + 1));
+    const rounded = num % len //Math.ceil(Math.round(num / len))
+    let stripped = rounded % Math.random() * 10 + 10
+    let speedfunc = parseInt(stripped)
+    //console.log('speed', speedfunc);
 
     this.element = document.getElementById(id);/*HTML element of the horse*/
     this.speed = speedfunc/*Initiate a random speed for each horse, the greater speed, the faster horse. The value is between 10 and 20*/
@@ -77,7 +169,7 @@ function Horse(id, x, y) {
                     //Change HTML class of horse to runDown
                     horse.element.className = 'horse runDown';
                     //Change the speed, will be random value from 10 to 20
-                    console.log('speed', Math.random());
+                    //console.log('speed', Math.random());
                     horse.speed = speedfunc;
                     horse.moveDown();
                 }
@@ -153,7 +245,7 @@ function Horse(id, x, y) {
 
         //Push the horse number to results array, according the the results array, we know the order of race results
         results.push(this.number);
-        console.log('race results', results);
+        //console.log('race results', results);
 
         //Win horse
         if (results.length == 1) {
@@ -161,8 +253,10 @@ function Horse(id, x, y) {
             if (this.number == bethorse) {
                 // Add reward NFT code
                 console.log('You Won');
+                rewardNFT()
                 funds += amount;
             } else {
+                //rewardNFT()
                 funds -= amount;
             }
             document.getElementById('funds').innerText = funds;
@@ -173,19 +267,32 @@ function Horse(id, x, y) {
     }
 }
 
-
-var num_lap = 1, results = [], funds = 100, bethorse, amount, raceContract, NftContract, betToken;
-
 //Start the function when the document loaded
-document.addEventListener("DOMContentLoaded", function (event) {
+document.addEventListener("DOMContentLoaded", async function (event) {
 
-    var horse1 = new Horse('horse1', 20, 4);
-    var horse2 = new Horse('horse2', 20, 8);
-    var horse3 = new Horse('horse3', 20, 12);
-    var horse4 = new Horse('horse4', 20, 16);
+    let spd = await setInitialSpeed()
+    let b = await usersBalance()
+    funds = ((await usersBalance()) / 10**18).toFixed(2)
+    console.log('funds', funds);
+
+    var horse1 = new Horse('horse1', 20, 4, spd);
+    var horse2 = new Horse('horse2', 20, 8, spd);
+    var horse3 = new Horse('horse3', 20, 12, spd);
+    var horse4 = new Horse('horse4', 20, 16, spd);
+
+    document.getElementById('Bet').onclick = function () {
+        getRandomSpeed()
+
+        amount = parseInt(document.getElementById('amount').value);
+        console.log('amount', amount);
+        if (amount > 0) {
+            console.log(true);
+            placeBet(amount)
+        }
+    }
 
     //Event listener to the Start button
-    document.getElementById('start').onclick = function () {
+    document.getElementById('start').onclick = async function () {
         amount = parseInt(document.getElementById('amount').value);
         num_lap = parseInt(document.getElementById('num_lap').value);
         bethorse = parseInt(document.getElementById('bethorse').value);
@@ -212,6 +319,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
             horse4.run();
         }
     }
+
+
 });
 
 function Main() {
