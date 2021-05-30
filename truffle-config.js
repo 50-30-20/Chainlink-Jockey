@@ -3,6 +3,8 @@ require('babel-register');
 require('babel-polyfill');
 const HDWalletProvider = require("truffle-hdwallet-provider");
 
+console.log(process.env.METAMASK_WALLET_SECRET);
+
 module.exports = {
   networks: {
     development: {

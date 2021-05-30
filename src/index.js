@@ -1,8 +1,49 @@
 import "./game.css"
-console.log('HELLO');
+
+var web3 = new Web3(window.ethereum);
+import RaceContract from './abis/Race.json'
+
+function loadBlockchain() {
+    if (window.ethereum) {
+        window.web3 = new Web3(window.ethereum)
+        window.ethereum.enable()
+    }
+    else if (window.web3) {
+        window.web3 = new Web3(window.web3.currentProvider)
+    }
+    else {
+        window.alert("Non ethereum browser detected. You should consider trying Metamask")
+    }
+}
+
+function setInitialSpeed() {
+    let num = 1
+    const len = Math.ceil(Math.log10(num + 1));
+    const rounded = num % len //Math.ceil(Math.round(num / len))
+    let stripped = rounded % Math.random() * 10 + 10
+    let speed = parseInt(stripped)
+    console.log(len, rounded, speed);
+
+    return speed
+}
+
+function speed() {
+    // let num = 1
+    // const len = Math.ceil(Math.log10(num + 1));
+    // const rounded = num % len //Math.ceil(Math.round(num / len))
+    // let stripped = rounded % Math.random() * 10 + 10
+    // let speed = parseInt(stripped)
+    // console.log(len, rounded, speed);
+
+    let horseSpeed = Math.random() * 10 + 10;
+    console.log(horseSpeed);
+    return horseSpeed
+
+    //return speed
+}
 
 function Horse(id, x, y) {
-    let speedfunc = speed()
+    let speedfunc = setInitialSpeed()
     console.log('speed', speedfunc);
 
     this.element = document.getElementById(id);/*HTML element of the horse*/
@@ -132,12 +173,8 @@ function Horse(id, x, y) {
     }
 }
 
-function speed() {
-    let horseSpeed = Math.random() * 10 + 10;
-    return horseSpeed
-}
 
-var num_lap = 1, results = [], funds = 100, bethorse, amount;
+var num_lap = 1, results = [], funds = 100, bethorse, amount, raceContract, NftContract, betToken;
 
 //Start the function when the document loaded
 document.addEventListener("DOMContentLoaded", function (event) {
@@ -176,3 +213,9 @@ document.addEventListener("DOMContentLoaded", function (event) {
         }
     }
 });
+
+function Main() {
+    loadBlockchain()
+}
+
+Main()
